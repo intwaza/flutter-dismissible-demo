@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/sample_emails.dart';
 import '../models/email.dart';
 import '../widgets/email_tile.dart';
+import '../widgets/swipe_background.dart';
 
 /// The inbox: a scrollable list of emails.
 class InboxScreen extends StatefulWidget {
@@ -17,8 +18,11 @@ class _InboxScreenState extends State<InboxScreen> {
   final List<Email> _emails = List.of(sampleEmails);
 
   /// Called after an email has been swiped away.
-  void _onEmailDismissed(int index) {
+  /// [direction] tells us which way it was swiped, so we know the action.
+  void _onEmailDismissed(int index, DismissDirection direction) {
     final removed = _emails[index];
+    final action =
+        direction == DismissDirection.startToEnd ? 'Archived' : 'Deleted';
 
     // Remove the item from our data right away. Dismissible requires this:
     // the swiped widget must leave the tree, or Flutter throws an error.
@@ -29,7 +33,7 @@ class _InboxScreenState extends State<InboxScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text('Removed "${removed.subject}"'),
+          content: Text('$action "${removed.subject}"'),
           action: SnackBarAction(
             label: 'Undo',
             onPressed: () => setState(() => _emails.insert(index, removed)),
@@ -48,13 +52,31 @@ class _InboxScreenState extends State<InboxScreen> {
         itemBuilder: (context, index) {
           final email = _emails[index];
 
-          // Dismissible makes its child swipeable. All optional properties
-          // are left at their defaults for now.
+          // Dismissible makes its child swipeable.
           return Dismissible(
             // The key must be unique and stable, so Flutter knows exactly
             // which email was swiped (never use the index here).
             key: ValueKey(email.id),
-            onDismissed: (direction) => _onEmailDismissed(index),
+
+            // PROPERTY: background (default: null = empty space).
+            // Shown when swiping left to right (startToEnd) -> Archive.
+            background: const SwipeBackground(
+              color: Colors.green,
+              icon: Icons.archive,
+              label: 'Archive',
+              alignment: Alignment.centerLeft,
+            ),
+
+            // Shown when swiping right to left (endToStart) -> Delete.
+            // Only allowed if `background` is also set.
+            secondaryBackground: const SwipeBackground(
+              color: Colors.red,
+              icon: Icons.delete,
+              label: 'Delete',
+              alignment: Alignment.centerRight,
+            ),
+
+            onDismissed: (direction) => _onEmailDismissed(index, direction),
             child: EmailTile(email: email),
           );
         },

@@ -19,6 +19,7 @@ void main() {
 
     expect(find.text('Canvas'), findsNothing);
     expect(find.text('Inbox (7)'), findsOneWidget);
+    expect(find.textContaining('Deleted'), findsOneWidget);
 
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle();
