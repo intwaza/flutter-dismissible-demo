@@ -27,4 +27,33 @@ void main() {
     expect(find.text('Canvas'), findsOneWidget);
     expect(find.text('Inbox (8)'), findsOneWidget);
   });
+
+  testWidgets('direction "Left only" blocks swiping right',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const DismissibleDemoApp());
+
+    await tester.tap(find.byTooltip('Dismissible settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Left only'));
+    await tester.pumpAndSettle();
+
+    await tester.drag(find.text('Canvas'), const Offset(600, 0));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Canvas'), findsOneWidget);
+    expect(find.text('Inbox (8)'), findsOneWidget);
+  });
+
+  testWidgets('Reset inbox brings back removed emails',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const DismissibleDemoApp());
+
+    await tester.drag(find.text('Canvas'), const Offset(-600, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('Inbox (7)'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Reset inbox'));
+    await tester.pumpAndSettle();
+    expect(find.text('Inbox (8)'), findsOneWidget);
+  });
 }
